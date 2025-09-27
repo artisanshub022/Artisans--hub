@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artisans Hub - Login</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Welcome to Artisans Hub</h2>
+
+    <!-- Role Selection -->
+    <p>Select your role:</p>
+    <label><input type="radio" name="role" value="artist" checked> Artist</label>
+    <label><input type="radio" name="role" value="buyer"> Buyer</label>
+
+    <!-- Email/Password Form -->
+    <input type="email" id="email" placeholder="Enter email">
+    <input type="password" id="password" placeholder="Enter password">
+    <button onclick="signUp()">Sign Up</button>
+    <button onclick="login()">Login</button>
+
+    <hr>
+    <!-- Google Login -->
+    <button class="google-btn" onclick="googleLogin()">Sign in with Google</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { 
+      getAuth, 
+      createUserWithEmailAndPassword, 
+      signInWithEmailAndPassword, 
+      signInWithPopup, 
+      GoogleAuthProvider 
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+    // ✅ Firebase config (apna config daalo)
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    // 🟢 Sign Up
+    window.signUp = function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const role = document.querySelector('input[name="role"]:checked').value;
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          if (role === "artist") window.location.href = "artist-dashboard.html";
+          else window.location.href = "buyer-dashboard.html";
+        })
+        .catch((error) => alert(error.message));
+    };
+
+    // 🟢 Login
+    window.login = function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const role = document.querySelector('input[name="role"]:checked').value;
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          if (role === "artist") window.location.href = "artist-dashboard.html";
+          else window.location.href = "buyer-dashboard.html";
+        })
+        .catch((error) => alert(error.message));
+    };
+
+    // 🟢 Google Login
+    window.googleLogin = function () {
+      const role = document.querySelector('input[name="role"]:checked').value;
+
+      signInWithPopup(auth, provider)
+        .then(() => {
+          if (role === "artist") window.location.href = "artist-dashboard.html";
+          else window.location.href = "buyer-dashboard.html";
+        })
+        .catch((error) => alert(error.message));
+    };
+  </script>
+</body>
+</html>
