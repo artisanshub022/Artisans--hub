@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buyer Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Available Artworks</h2>
+    <div class="grid" id="artworks"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    // ✅ Firebase config (apna config daalo)
+    const firebaseConfig = {
+  apiKey: "AIzaSyAT45JeRiga5sEFgh2ytK3w7rk6nD46zv8",
+  authDomain: "artisans-hub-fb2b6.firebaseapp.com",
+  projectId: "artisans-hub-fb2b6",
+  storageBucket: "artisans-hub-fb2b6.firebasestorage.app",
+  messagingSenderId: "341028879133",
+  appId: "1:341028879133:web:cdf3f38d0995a5390ffff4"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadArtworks() {
+      const querySnapshot = await getDocs(collection(db, "artworks"));
+      const artworksDiv = document.getElementById("artworks");
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        artworksDiv.innerHTML += `
+          <div class="artwork">
+            <img src="${data.imageUrl}" alt="${data.name}">
+            <h3>${data.name}</h3>
+            <p>${data.description}</p>
+            <p><b>Price:</b> ₹${data.price}</p>
+            <p><b>Customization:</b> ${data.customization}</p>
+            <button>Buy</button>
+          </div>
+        `;
+      });
+    }
+
+    loadArtworks();
+  </script>
+</body>
+</html>
