@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artist Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Upload Your Artwork</h2>
+
+    <input type="text" id="artworkName" placeholder="Artwork Name">
+    <textarea id="artworkDescription" placeholder="Description"></textarea>
+    <input type="number" id="artworkPrice" placeholder="Price">
+    <input type="text" id="artworkCustomization" placeholder="Customization (Yes/No)">
+    <input type="file" id="artworkImage">
+    <button onclick="uploadArtwork()">Upload</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
+
+    // ✅ Firebase config (apna config daalo)
+    const firebaseConfig = {
+  apiKey: "AIzaSyAT45JeRiga5sEFgh2ytK3w7rk6nD46zv8",
+  authDomain: "artisans-hub-fb2b6.firebaseapp.com",
+  projectId: "artisans-hub-fb2b6",
+  storageBucket: "artisans-hub-fb2b6.firebasestorage.app",
+  messagingSenderId: "341028879133",
+  appId: "1:341028879133:web:cdf3f38d0995a5390ffff4"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    window.uploadArtwork = async function () {
+      const name = document.getElementById("artworkName").value;
+      const description = document.getElementById("artworkDescription").value;
+      const price = document.getElementById("artworkPrice").value;
+      const customization = document.getElementById("artworkCustomization").value;
+      const file = document.getElementById("artworkImage").files[0];
+
+      if (!file) return alert("Please select an image!");
+
+      const storageRef = ref(storage, "artworks/" + file.name);
+      await uploadBytes(storageRef, file);
+      const imageUrl = await getDownloadURL(storageRef);
+
+      await addDoc(collection(db, "artworks"), {
+        name, description, price, customization, imageUrl
+      });
+
+      alert("Artwork uploaded successfully!");
+    };
+  </script>
+</body>
+</html>
