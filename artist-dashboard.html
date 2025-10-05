@@ -17,55 +17,50 @@
     <input type="file" id="artworkImage">
     <button onclick="uploadArtwork()">Upload</button>
   </div>
-    <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-  // 🔹 Yahan tumhe apne Supabase ke details dalne hain 👇
-  const supabaseUrl = "https://kbekzfrjtruiigbpojmi.supabase.co" // ← yahan apna Supabase project URL daalo
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg"; // ← yahan apni anon public key daalo
+  // Supabase configuration (tumhare project ke details yahan daalna)
+  const supabaseUrl = "https://YOUR_PROJECT_URL.supabase.co";
+  const supabaseKey = "YOUR_ANON_PUBLIC_KEY";
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // 🔹 Ye code upload button ke click pe chalega
+  // Upload artwork function
   window.uploadArtwork = async function () {
-    try {
-      const name = document.getElementById("artworkName").value.trim();
-      const description = document.getElementById("artworkDescription").value.trim();
-      const price = document.getElementById("artworkPrice").value;
-      const customization = document.getElementById("artworkCustomization").value.trim();
-      const fileInput = document.getElementById("artworkImage");
-      const file = fileInput.files[0];
+    const fileInput = document.getElementById("artworkFile");
+    const title = document.getElementById("artworkTitle").value;
+    const price = document.getElementById("artworkPrice").value;
+    const customization = document.getElementById("artworkCustomization").value;
+    const file = fileInput.files[0];
 
-      if (!file) return alert("Please select an image first!");
-
-      const fileExt = file.name.split('.').pop();
-      const uniqueName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${fileExt}`;
-      const filePath = `uploads/${uniqueName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("artworks")
-        .upload(filePath, file, { cacheControl: '3600', upsert: false });
-
-      if (uploadError) return alert("Upload failed: " + uploadError.message);
-
-      const { data: urlData } = supabase.storage.from("artworks").getPublicUrl(filePath);
-      const imageUrl = urlData?.publicUrl || "";
-
-      await addDoc(collection(db, "artworks"), {
-        name, description, price, customization, imageUrl, createdAt: new Date().toISOString()
-      });
-
-      alert("✅ Artwork uploaded successfully!");
-      fileInput.value = "";
-      document.getElementById("artworkName").value = "";
-      document.getElementById("artworkDescription").value = "";
-      document.getElementById("artworkPrice").value = "";
-      document.getElementById("artworkCustomization").value = "";
-    } catch (err) {
-      console.error("Upload error:", err);
-      alert("Kuch gadbad ho gayi — check console for details.");
+    if (!file) {
+      alert("Please select a file to upload");
+      return;
     }
+
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from("uploads")
+      .upload(`artworks/${Date.now()}_${file.name}`, file);
+
+    if (error) {
+      console.error("Upload error:", error);
+      alert("Error uploading file.");
+      return;
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from("uploads")
+      .getPublicUrl(data.path);
+
+    const imageUrl = urlData.publicUrl;
+
+    // Save metadata in Firestore (agar Firebase use kar rahe ho)
+    // Agar nahi chahiye to ye part hata sakti ho
+    console.log("Uploaded successfully:", imageUrl);
+    alert("Artwork uploaded successfully!");
   };
 </script>
     
