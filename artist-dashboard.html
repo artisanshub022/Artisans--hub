@@ -22,19 +22,8 @@
   import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
- const firebaseConfig = {
-  apiKey: "AIzaSyAT45JeRiga5sEFgh2ytK3w7rk6nD46zv8",
-  authDomain: "artisans-hub-fb2b6.firebaseapp.com",
-  projectId: "artisans-hub-fb2b6",
-  storageBucket: "artisans-hub-fb2b6.firebasestorage.app",
-  messagingSenderId: "341028879133",
-  appId: "1:341028879133:web:cdf3f38d0995a5390ffff4"
-};
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
   // 🔹 Yahan tumhe apne Supabase ke details dalne hain 👇
-  const supabaseUrl = "https://kbekzfrjtruiigbpojmi.supabase.co // ← yahan apna Supabase project URL daalo
+  const supabaseUrl = "https://kbekzfrjtruiigbpojmi.supabase.co" // ← yahan apna Supabase project URL daalo
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg"; // ← yahan apni anon public key daalo
   const supabase = createClient(supabaseUrl, supabaseKey);
 
