@@ -58,7 +58,7 @@
 
     // ✅ Save metadata in Supabase table
     const { error: dbError } = await supabase
-      .from("artworks")
+      .from("uploads")
       .insert([{ title, description, price, customization, image_url: imageUrl }]);
 
     if (dbError) {
