@@ -5,50 +5,57 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Buyer Dashboard</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+    .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+    .card { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); text-align: center; }
+    img { width: 100%; height: 200px; object-fit: cover; border-radius: 10px; }
+    h3 { margin: 10px 0 5px; }
+    p { font-size: 14px; color: #555; }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Available Artworks</h2>
-    <div class="grid" id="artworks"></div>
-  </div>
+  <h1>Available Artworks</h1>
+  <div class="gallery" id="gallery"></div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    // ✅ Firebase config (apna config daalo)
-    const firebaseConfig = {
-  apiKey: "AIzaSyAT45JeRiga5sEFgh2ytK3w7rk6nD46zv8",
-  authDomain: "artisans-hub-fb2b6.firebaseapp.com",
-  projectId: "artisans-hub-fb2b6",
-  storageBucket: "artisans-hub-fb2b6.firebasestorage.app",
-  messagingSenderId: "341028879133",
-  appId: "1:341028879133:web:cdf3f38d0995a5390ffff4"
-};
+  const supabaseUrl = "https://kbekzfrjtruiigbpojmi.supabase.co";  // apna project URL
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg";
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  async function loadArtworks() {
+    const gallery = document.getElementById("gallery");
 
-    async function loadArtworks() {
-      const querySnapshot = await getDocs(collection(db, "artworks"));
-      const artworksDiv = document.getElementById("artworks");
+    const { data, error } = await supabase
+      .from("artworks")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        artworksDiv.innerHTML += `
-          <div class="artwork">
-            <img src="${data.imageUrl}" alt="${data.name}">
-            <h3>${data.name}</h3>
-            <p>${data.description}</p>
-            <p><b>Price:</b> ₹${data.price}</p>
-            <p><b>Customization:</b> ${data.customization}</p>
-            <button>Buy</button>
-          </div>
-        `;
-      });
+    if (error) {
+      console.error(error);
+      gallery.innerHTML = "<p>Error loading artworks.</p>";
+      return;
     }
 
-    loadArtworks();
-  </script>
+    if (!data || data.length === 0) {
+      gallery.innerHTML = "<p>No artworks uploaded yet.</p>";
+      return;
+    }
+
+    gallery.innerHTML = data.map(art => `
+      <div class="card">
+        <img src="${art.image_url}" alt="${art.title}">
+        <h3>${art.title}</h3>
+        <p>${art.description}</p>
+        <p><strong>Price:</strong> ₹${art.price}</p>
+        <p><strong>Customization:</strong> ${art.customization}</p>
+      </div>
+    `).join("");
+  }
+
+  loadArtworks();
+</script>
 </body>
 </html>
