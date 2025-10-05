@@ -17,14 +17,12 @@
     <input type="file" id="artworkImage">
     <button onclick="uploadArtwork()">Upload</button>
   </div>
+    <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
-
-    // ✅ Firebase config (apna config daalo)
-    const firebaseConfig = {
+ const firebaseConfig = {
   apiKey: "AIzaSyAT45JeRiga5sEFgh2ytK3w7rk6nD46zv8",
   authDomain: "artisans-hub-fb2b6.firebaseapp.com",
   projectId: "artisans-hub-fb2b6",
@@ -32,30 +30,55 @@
   messagingSenderId: "341028879133",
   appId: "1:341028879133:web:cdf3f38d0995a5390ffff4"
 };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
+  // 🔹 Yahan tumhe apne Supabase ke details dalne hain 👇
+  const supabaseUrl = "https://kbekzfrjtruiigbpojmi.supabase.co // ← yahan apna Supabase project URL daalo
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg"; // ← yahan apni anon public key daalo
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
-    window.uploadArtwork = async function () {
-      const name = document.getElementById("artworkName").value;
-      const description = document.getElementById("artworkDescription").value;
+  // 🔹 Ye code upload button ke click pe chalega
+  window.uploadArtwork = async function () {
+    try {
+      const name = document.getElementById("artworkName").value.trim();
+      const description = document.getElementById("artworkDescription").value.trim();
       const price = document.getElementById("artworkPrice").value;
-      const customization = document.getElementById("artworkCustomization").value;
-      const file = document.getElementById("artworkImage").files[0];
+      const customization = document.getElementById("artworkCustomization").value.trim();
+      const fileInput = document.getElementById("artworkImage");
+      const file = fileInput.files[0];
 
-      if (!file) return alert("Please select an image!");
+      if (!file) return alert("Please select an image first!");
 
-      const storageRef = ref(storage, "artworks/" + file.name);
-      await uploadBytes(storageRef, file);
-      const imageUrl = await getDownloadURL(storageRef);
+      const fileExt = file.name.split('.').pop();
+      const uniqueName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${fileExt}`;
+      const filePath = `uploads/${uniqueName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("artworks")
+        .upload(filePath, file, { cacheControl: '3600', upsert: false });
+
+      if (uploadError) return alert("Upload failed: " + uploadError.message);
+
+      const { data: urlData } = supabase.storage.from("artworks").getPublicUrl(filePath);
+      const imageUrl = urlData?.publicUrl || "";
 
       await addDoc(collection(db, "artworks"), {
-        name, description, price, customization, imageUrl
+        name, description, price, customization, imageUrl, createdAt: new Date().toISOString()
       });
 
-      alert("Artwork uploaded successfully!");
-    };
-  </script>
+      alert("✅ Artwork uploaded successfully!");
+      fileInput.value = "";
+      document.getElementById("artworkName").value = "";
+      document.getElementById("artworkDescription").value = "";
+      document.getElementById("artworkPrice").value = "";
+      document.getElementById("artworkCustomization").value = "";
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Kuch gadbad ho gayi — check console for details.");
+    }
+  };
+</script>
+    
 </body>
 </html>
