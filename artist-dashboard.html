@@ -43,53 +43,55 @@
         return;
       }
 
-      try {
-        // ✅ STEP 1: Upload to Supabase Storage (bucket name = uploads)
-        const filePath = `artworks/${Date.now()}_${file.name}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("uploads")
-          .upload(filePath, file);
+      // ✅ STEP 1: Upload to Supabase Storage (bucket name = uploads)
+      const filePath = `artworks/${Date.now()}_${file.name}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("uploads")
+        .upload(filePath, file);
 
-        if (uploadError) throw uploadError;
-
-        // ✅ STEP 2: Get Public URL
-        const { data: publicUrlData, error: urlError } = supabase.storage
-          .from("uploads")
-          .getPublicUrl(uploadData.path);
-
-        if (urlError) throw urlError;
-
-        const imageUrl = publicUrlData.publicUrl;
-
-        // ✅ STEP 3: Save artwork info to database
-        const { error: dbError } = await supabase
-          .from("artworks")
-          .insert([
-            {
-              artist_name: artistName,
-              title: title,
-              description: description,
-              price: price,
-              customization: customization || null, // optional field
-              image_url: imageUrl,
-            },
-          ]);
-
-        if (dbError) throw dbError;
-
-        alert("✅ Artwork uploaded and saved successfully!");
-
-        // ✅ STEP 4: Clear form
-        document.getElementById("artistName").value = "";
-        document.getElementById("artworkName").value = "";
-        document.getElementById("artworkDescription").value = "";
-        document.getElementById("artworkPrice").value = "";
-        document.getElementById("artworkCustomization").value = "";
-        document.getElementById("artworkImage").value = "";
-      } catch (error) {
-        console.error("❌ Error:", error);
-        alert("Something went wrong! Check console for details.");
+      if (uploadError) {
+        console.error("❌ Upload error:", uploadError);
+        alert("Error uploading image to Supabase Storage!");
+        return;
       }
+
+      // ✅ STEP 2: Get Public URL
+      const { data: publicUrlData } = supabase.storage
+        .from("uploads")
+        .getPublicUrl(uploadData.path);
+
+      const imageUrl = publicUrlData.publicUrl;
+      console.log("✅ Image URL:", imageUrl);
+
+      // ✅ STEP 3: Save artwork info to database
+      const { error: dbError } = await supabase
+        .from("artworks")
+        .insert([
+          {
+            artist_name: artistName,
+            title: title,
+            description: description,
+            price: price,
+            customization: customization,
+            image_url: imageUrl,
+          },
+        ]);
+
+      if (dbError) {
+        console.error("❌ Database save error:", dbError);
+        alert("Image uploaded but failed to save artwork data!");
+        return;
+      }
+
+      alert("✅ Artwork uploaded and saved successfully!");
+
+      // ✅ STEP 4: Clear form
+      document.getElementById("artistName").value = "";
+      document.getElementById("artworkName").value = "";
+      document.getElementById("artworkDescription").value = "";
+      document.getElementById("artworkPrice").value = "";
+      document.getElementById("artworkCustomization").value = "";
+      document.getElementById("artworkImage").value = "";
     };
   </script>
 </body>
