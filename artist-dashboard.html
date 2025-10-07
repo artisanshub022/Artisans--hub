@@ -18,57 +18,75 @@
     <button onclick="uploadArtwork()">Upload</button>
   </div>
 
-<script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-  const supabaseUrl = "https://kbekzfrjtruiigbpojmi.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg";
-  const supabase = createClient(supabaseUrl, supabaseKey);
+    // ✅ Supabase project details
+    const supabaseUrl = "https://kbekzfrjtruiigbpojmi.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg";
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-  window.uploadArtwork = async function () {
-    const fileInput = document.getElementById("artworkImage");
-    const title = document.getElementById("artworkName").value;
-    const description = document.getElementById("artworkDescription").value;
-    const price = document.getElementById("artworkPrice").value;
-    const customization = document.getElementById("artworkCustomization").value;
-    const file = fileInput.files[0];
+    // ✅ Main upload function
+    window.uploadArtwork = async function () {
+      const title = document.getElementById("artworkName").value.trim();
+      const description = document.getElementById("artworkDescription").value.trim();
+      const price = document.getElementById("artworkPrice").value.trim();
+      const customization = document.getElementById("artworkCustomization").value.trim();
+      const file = document.getElementById("artworkImage").files[0];
 
-    if (!file) {
-      alert("Please select a file to upload");
-      return;
-    }
+      if (!title || !price || !file) {
+        alert("Please fill all required fields and select an image!");
+        return;
+      }
 
-    // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
-      .from("uploads")
-      .upload(`artworks/${Date.now()}_${file.name}`, file);
+      // ✅ STEP 1: Upload to Supabase Storage (Bucket name must match "artworks")
+      const filePath = `artworks/${Date.now()}_${file.name}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("artworks")
+        .upload(filePath, file);
 
-    if (error) {
-      console.error("Upload error:", error);
-      alert("Error uploading file.");
-      return;
-    }
+      if (uploadError) {
+        console.error("❌ Upload error:", uploadError);
+        alert("Error uploading image.");
+        return;
+      }
 
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from("artworks")
-      .getPublicUrl(data.path);
+      // ✅ STEP 2: Get Public URL of uploaded image
+      const { data: publicUrlData } = supabase
+        .storage
+        .from("artworks")
+        .getPublicUrl(uploadData.path);
 
-    const imageUrl = urlData.publicUrl;
+      const imageUrl = publicUrlData.publicUrl;
+      console.log("✅ Image URL:", imageUrl);
 
-    // ✅ Save metadata in Supabase table
-    const { error: dbError } = await supabase
-      .from("uploads")
-      .insert([{ title, description, price, customization, image_url: imageUrl }]);
+      // ✅ STEP 3: Save artwork info to Supabase database table "artworks"
+      const { error: dbError } = await supabase
+        .from("artworks")
+        .insert([
+          {
+            title: title,
+            description: description,
+            price: price,
+            customization: customization,
+            image_url: imageUrl
+          }
+        ]);
 
-    if (dbError) {
-      console.error("Database save error:", dbError);
-      alert("File uploaded, but data not saved!");
-      return;
-    }
+      if (dbError) {
+        console.error("❌ Database save error:", dbError);
+        alert("File uploaded but data not saved!");
+        return;
+      }
 
-    alert("Artwork uploaded successfully!");
-  };
-</script>
+      alert("✅ Artwork uploaded successfully!");
+      // Optional: Clear form after success
+      document.getElementById("artworkName").value = "";
+      document.getElementById("artworkDescription").value = "";
+      document.getElementById("artworkPrice").value = "";
+      document.getElementById("artworkCustomization").value = "";
+      document.getElementById("artworkImage").value = "";
+    };
+  </script>
 </body>
 </html>
