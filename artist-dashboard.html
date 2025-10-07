@@ -78,11 +78,13 @@
         ]);
 
       if (dbError) {
-        console.error("❌ Database save error:", dbError);
-        alert("Image uploaded but failed to save artwork data!");
-        return;
-      }
-
+        if (dbError) {
+  console.error("X Database save error:", dbError);
+  console.log("Full Supabase error details:", dbError); // <-- Yahan yeh line add karen
+  alert("Image uploaded but failed to save artwork data!");
+  return;
+}
+        
       alert("✅ Artwork uploaded and saved successfully!");
 
       // ✅ STEP 4: Clear form
