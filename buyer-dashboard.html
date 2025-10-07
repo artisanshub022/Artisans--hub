@@ -8,34 +8,34 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #fafafa;
+      background: #fafafa;
       margin: 0;
-      padding: 0;
+      padding: 20px;
     }
 
     h2 {
       text-align: center;
-      margin-top: 20px;
       color: #333;
+      margin-bottom: 20px;
     }
 
-    .artwork-container {
+    .artworks-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 20px;
-      padding: 20px;
+      padding: 10px;
     }
 
     .artwork-card {
       background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       overflow: hidden;
-      transition: transform 0.2s ease;
+      transition: transform 0.2s;
     }
 
     .artwork-card:hover {
-      transform: translateY(-5px);
+      transform: scale(1.03);
     }
 
     .artwork-card img {
@@ -45,73 +45,80 @@
     }
 
     .artwork-info {
-      padding: 15px;
+      padding: 10px 15px;
     }
 
     .artwork-info h3 {
-      margin: 0;
+      margin: 5px 0;
+      font-size: 18px;
       color: #333;
     }
 
     .artwork-info p {
-      color: #666;
+      margin: 4px 0;
       font-size: 14px;
-      margin: 5px 0;
+      color: #555;
     }
 
     .price {
       font-weight: bold;
-      color: #1a73e8;
+      color: #008000;
     }
   </style>
 </head>
 <body>
   <h2>Available Artworks</h2>
-  <div class="artwork-container" id="artworkContainer">
-    <p style="text-align:center;">Loading artworks...</p>
+
+  <div id="artworks" class="artworks-grid">
+    <!-- Artworks will appear here -->
   </div>
 
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    // ✅ Same Supabase details as artist dashboard
+    // ✅ Supabase credentials
     const supabaseUrl = "https://kbekzfrjtruiigbpojmi.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg";
+    const supabaseKey =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg";
+
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const container = document.getElementById("artworkContainer");
-
+    // ✅ Fetch artworks from Supabase
     async function loadArtworks() {
-      const { data, error } = await supabase
-        .from("artworks")
-        .select("*")
-        .order("id", { ascending: false });
+      const { data, error } = await supabase.from("artworks").select("*").order("id", { ascending: false });
 
       if (error) {
-        container.innerHTML = "<p style='text-align:center;color:red;'>Failed to load artworks.</p>";
         console.error("Error fetching artworks:", error);
         return;
       }
 
-      if (!data || data.length === 0) {
+      const container = document.getElementById("artworks");
+      container.innerHTML = "";
+
+      if (data.length === 0) {
         container.innerHTML = "<p style='text-align:center;'>No artworks uploaded yet.</p>";
         return;
       }
 
-      // Display artworks
-      container.innerHTML = data.map(item => `
-        <div class="artwork-card">
-          <img src="${item.image_url}" alt="${item.title}">
+      // ✅ Loop through artworks
+      data.forEach((art) => {
+        const card = document.createElement("div");
+        card.classList.add("artwork-card");
+        card.innerHTML = `
+          <img src="${art.image_url}" alt="${art.title}">
           <div class="artwork-info">
-            <h3>${item.title}</h3>
-            <p>${item.description || "No description"}</p>
-            <p class="price">Price: ₹${item.price}</p>
-            <p>Customization: ${item.customization || "N/A"}</p>
+            <h3>${art.title}</h3>
+            <p><strong>Artist:</strong> ${art.artist_name}</p>
+            <p>${art.description || ""}</p>
+            <p class="price">Price: ₹${art.price}</p>
+            <p><strong>Customization:</strong> ${art.customization || "N/A"}</p>
           </div>
-        </div>
-      `).join("");
+        `;
+        container.appendChild(card);
+      });
     }
 
+    // ✅ Call function on load
     loadArtworks();
   </script>
 </body>
