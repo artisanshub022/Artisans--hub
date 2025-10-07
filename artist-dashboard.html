@@ -16,21 +16,21 @@
     <input type="number" id="artworkPrice" placeholder="Price">
     <input type="text" id="artworkCustomization" placeholder="Customization (Yes/No)">
     <input type="file" id="artworkImage">
-    <button onclick="uploadArtwork()">Upload</button>
+    <button id="uploadButton">Upload</button>
   </div>
 
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    // ✅ Supabase credentials
+    // Supabase credentials
     const supabaseUrl = "https://kbekzfrjtruiigbpojmi.supabase.co";
     const supabaseKey =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg";
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // ✅ Upload Function
-    window.uploadArtwork = async function () {
+    // ✅ New: Event listener to handle form submission
+    document.getElementById("uploadButton").addEventListener("click", async () => {
       const artistName = document.getElementById("artistName").value.trim();
       const title = document.getElementById("artworkName").value.trim();
       const description = document.getElementById("artworkDescription").value.trim();
@@ -78,13 +78,11 @@
         ]);
 
       if (dbError) {
-        if (dbError) {
-  console.error("X Database save error:", dbError);
-  console.log("Full Supabase error details:", dbError); // <-- Yahan yeh line add karen
-  alert("Image uploaded but failed to save artwork data!");
-  return;
-}
-        
+        console.error("❌ Database save error:", dbError);
+        alert("Image uploaded but failed to save artwork data!");
+        return;
+      }
+      
       alert("✅ Artwork uploaded and saved successfully!");
 
       // ✅ STEP 4: Clear form
@@ -94,7 +92,7 @@
       document.getElementById("artworkPrice").value = "";
       document.getElementById("artworkCustomization").value = "";
       document.getElementById("artworkImage").value = "";
-    };
+    });
   </script>
 </body>
 </html>
