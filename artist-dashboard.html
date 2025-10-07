@@ -10,6 +10,7 @@
   <div class="container">
     <h2>Upload Your Artwork</h2>
 
+    <input type="text" id="artistName" placeholder="Your Name (Artist)">
     <input type="text" id="artworkName" placeholder="Artwork Name">
     <textarea id="artworkDescription" placeholder="Description"></textarea>
     <input type="number" id="artworkPrice" placeholder="Price">
@@ -30,18 +31,19 @@
 
     // ✅ Upload Function
     window.uploadArtwork = async function () {
+      const artistName = document.getElementById("artistName").value.trim();
       const title = document.getElementById("artworkName").value.trim();
       const description = document.getElementById("artworkDescription").value.trim();
       const price = document.getElementById("artworkPrice").value.trim();
       const customization = document.getElementById("artworkCustomization").value.trim();
       const file = document.getElementById("artworkImage").files[0];
 
-      if (!title || !price || !file) {
-        alert("Please fill all required fields and select an image!");
+      if (!artistName || !title || !price || !file) {
+        alert("Please fill all required fields including your name and select an image!");
         return;
       }
 
-      // ✅ STEP 1: Upload to Supabase Storage (Bucket name must be 'uploads')
+      // ✅ STEP 1: Upload to Supabase Storage (bucket name = uploads)
       const filePath = `artworks/${Date.now()}_${file.name}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("uploads")
@@ -53,7 +55,7 @@
         return;
       }
 
-      // ✅ STEP 2: Get Public URL of the uploaded image
+      // ✅ STEP 2: Get Public URL
       const { data: publicUrlData } = supabase.storage
         .from("uploads")
         .getPublicUrl(uploadData.path);
@@ -61,11 +63,12 @@
       const imageUrl = publicUrlData.publicUrl;
       console.log("✅ Image URL:", imageUrl);
 
-      // ✅ STEP 3: Insert artwork details into 'artworks' table
+      // ✅ STEP 3: Save artwork info to database
       const { error: dbError } = await supabase
         .from("artworks")
         .insert([
           {
+            artist_name: artistName,
             title: title,
             description: description,
             price: price,
@@ -83,6 +86,7 @@
       alert("✅ Artwork uploaded and saved successfully!");
 
       // ✅ STEP 4: Clear form
+      document.getElementById("artistName").value = "";
       document.getElementById("artworkName").value = "";
       document.getElementById("artworkDescription").value = "";
       document.getElementById("artworkPrice").value = "";
