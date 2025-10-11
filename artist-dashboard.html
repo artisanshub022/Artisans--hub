@@ -22,14 +22,15 @@
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    // Supabase credentials
+    // ✅ Your Supabase credentials
     const supabaseUrl = "https://kbekzfrjtruiigbpojmi.supabase.co";
     const supabaseKey =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg";
 
+    // ✅ Initialize Supabase client
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // ✅ New: Event listener to handle form submission
+    // ✅ Upload button click handler
     document.getElementById("uploadButton").addEventListener("click", async () => {
       const artistName = document.getElementById("artistName").value.trim();
       const title = document.getElementById("artworkName").value.trim();
@@ -43,55 +44,54 @@
         return;
       }
 
-      // ✅ STEP 1: Upload to Supabase Storage (bucket name = uploads)
-      const filePath = `artworks/${Date.now()}_${file.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("uploads")
-        .upload(filePath, file);
+      try {
+        // ✅ STEP 1: Upload to Supabase Storage
+        const filePath = `${Date.now()}_${file.name}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("uploads")
+          .upload(filePath, file, {
+            cacheControl: "3600",
+            upsert: false,
+          });
 
-      if (uploadError) {
-        console.error("❌ Upload error:", uploadError);
-        alert("Error uploading image to Supabase Storage!");
-        return;
-      }
+        if (uploadError) throw uploadError;
+        console.log("✅ Uploaded to storage:", uploadData.path);
 
-      // ✅ STEP 2: Get Public URL
-      const { data: publicUrlData } = supabase.storage
-        .from("uploads")
-        .getPublicUrl(uploadData.path);
+        // ✅ STEP 2: Get Public URL
+        const { data: publicUrlData } = supabase.storage
+          .from("uploads")
+          .getPublicUrl(uploadData.path);
+        const imageUrl = publicUrlData.publicUrl;
+        console.log("✅ Public URL:", imageUrl);
 
-      const imageUrl = publicUrlData.publicUrl;
-      console.log("✅ Image URL:", imageUrl);
-
-      // ✅ STEP 3: Save artwork info to database
-      const { error: dbError } = await supabase
-        .from("artworks")
-        .insert([
+        // ✅ STEP 3: Insert artwork info into database
+        const { error: dbError } = await supabase.from("artworks").insert([
           {
             artist_name: artistName,
             title: title,
             description: description,
             price: price,
             customization: customization,
-            image_url: imageUrl
+            image_url: imageUrl,
           },
         ]);
 
-      if (dbError) {
-        console.error("❌ Database save error:", dbError);
-        alert("Image uploaded but failed to save artwork data!");
-        return;
-      }
-      
-      alert("✅ Artwork uploaded and saved successfully!");
+        if (dbError) throw dbError;
 
-      // ✅ STEP 4: Clear form
-      document.getElementById("artistName").value = "";
-      document.getElementById("artworkName").value = "";
-      document.getElementById("artworkDescription").value = "";
-      document.getElementById("artworkPrice").value = "";
-      document.getElementById("artworkCustomization").value = "";
-      document.getElementById("artworkImage").value = "";
+        alert("✅ Artwork uploaded and saved successfully!");
+
+        // ✅ STEP 4: Clear form
+        document.getElementById("artistName").value = "";
+        document.getElementById("artworkName").value = "";
+        document.getElementById("artworkDescription").value = "";
+        document.getElementById("artworkPrice").value = "";
+        document.getElementById("artworkCustomization").value = "";
+        document.getElementById("artworkImage").value = "";
+
+      } catch (error) {
+        console.error("❌ Error:", error);
+        alert("Something went wrong! Please check console for details.");
+      }
     });
   </script>
 </body>
