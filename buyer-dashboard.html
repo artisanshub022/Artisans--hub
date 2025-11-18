@@ -1,153 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buyer Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+  <title>ARTSIANS HUB - Buyer Dashboard</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #fafafa;
-      margin: 0;
-      padding: 20px;
-    }
-
-    h2 {
-      text-align: center;
-      color: #333;
-      margin-bottom: 20px;
-    }
-
-    .artworks-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      padding: 10px;
-    }
-
-    .artwork-card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      transition: transform 0.2s;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .artwork-card:hover {
-      transform: scale(1.03);
-    }
-
-    .artwork-card img {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-    }
-
-    .artwork-info {
-      padding: 10px 15px;
-      flex: 1;
-    }
-
-    .artwork-info h3 {
-      margin: 5px 0;
-      font-size: 18px;
-      color: #333;
-    }
-
-    .artwork-info p {
-      margin: 4px 0;
-      font-size: 14px;
-      color: #555;
-    }
-
-    .price {
-      font-weight: bold;
-      color: #008000;
-    }
-
-    .buy-button {
-      margin: 10px 15px 15px 15px;
-      padding: 8px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.2s;
-    }
-
-    .buy-button:hover {
-      background: #0056b3;
-    }
+    body {font-family: Arial, sans-serif; background: linear-gradient(135deg,#f6d365,#fda085,#fbc2eb); margin: 0; padding: 20px;}
+    .container {max-width: 1000px; margin: auto; background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); border-radius: 20px; padding: 20px;}
+    h2 {text-align: center;}
+    #artworkList {display: grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap: 14px; margin-top: 20px;}
+    .art-card {background: rgba(255,255,255,0.85); padding: 12px; border-radius: 12px; box-shadow: 0 6px 20px rgba(10,10,20,0.06);}
+    .art-card img {width: 100%; height: 150px; object-fit: cover; border-radius: 8px;}
+    .art-meta {display: flex; justify-content: space-between; margin-top: 6px; font-size: 14px;}
+    .btn-primary {background: linear-gradient(90deg,#6a11cb,#2575fc); color: white; border: none; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: bold;}
   </style>
 </head>
-<body>
-  <h2>Available Artworks</h2>
+<body>  <div class="container">
+    <h2>Buyer Dashboard</h2>
+    <input type="text" id="searchInput" placeholder="Search artworks..." style="width:100%; padding:10px; margin:8px 0; border-radius:8px; border:1px solid rgba(0,0,0,0.1)"><div id="artworkList"></div>
 
-  <div id="artworks" class="artworks-grid">
-    <!-- Artworks will appear here -->
-  </div>
-
-  <script type="module">
+  </div>  <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
 
-    // Supabase credentials
-    const supabaseUrl = "https://kbekzfrjtruiigbpojmi.supabase.co";
-    const supabaseKey =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg";
+    const supabase = createClient(
+      "https://kbekzfrjtruiigbpojmi.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg"
+    );
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const artworkList = document.getElementById('artworkList');
+    const searchInput = document.getElementById('searchInput');
+    let artworksCache = [];
 
-    // Load artworks
-    async function loadArtworks() {
-      const { data, error } = await supabase.from("artworks").select("*").order("id", { ascending: false });
+    async function loadArtworks(){
+      const { data } = await supabase.from('artworks').select('*').order('id', {ascending:false});
+      artworksCache = data || [];
+      renderList();
+    }
 
-      if (error) {
-        console.error("Error fetching artworks:", error);
-        alert("Failed to load artworks.");
-        return;
-      }
-
-      const container = document.getElementById("artworks");
-      container.innerHTML = "";
-
-      if (data.length === 0) {
-        container.innerHTML = "<p style='text-align:center;'>No artworks uploaded yet.</p>";
-        return;
-      }
-
-      data.forEach((art) => {
-        const card = document.createElement("div");
-        card.classList.add("artwork-card");
+    function renderList(){
+      const q = searchInput.value.trim().toLowerCase();
+      artworkList.innerHTML = '';
+      let list = artworksCache.slice();
+      if(q){ list = list.filter(a => (a.title||'').toLowerCase().includes(q) || (a.description||'').toLowerCase().includes(q)); }
+      if(list.length === 0){ artworkList.innerHTML = '<div style="color:#333; text-align:center; margin-top:20px">No artworks found.</div>'; return; }
+      list.forEach(a => {
+        const card = document.createElement('div');
+        card.className = 'art-card';
         card.innerHTML = `
-          <img src="${art.image_url}" alt="${art.title}">
-          <div class="artwork-info">
-            <h3>${art.title}</h3>
-            <p><strong>Artist:</strong> ${art.artist_name}</p>
-            <p>${art.description || ""}</p>
-            <p class="price">Price: ₹${art.price}</p>
-            <p><strong>Customization:</strong> ${art.customization || "N/A"}</p>
-          </div>
-          <button class="buy-button">Buy</button>
+          <img src='${a.image_url}' />
+          <h4>${a.title}</h4>
+          <p>${a.description}</p>
+          <div class='art-meta'><span>₹${a.price}</span><span>${a.customization}</span></div>
+          <button class='btn-primary' onclick='onBuy(${a.id})'>Buy</button>
         `;
-
-        // ✅ Optional: Add click event for Buy button
-        const buyBtn = card.querySelector(".buy-button");
-        buyBtn.addEventListener("click", () => {
-          alert(`You selected to buy "${art.title}" by ${art.artist_name} for ₹${art.price}`);
-          // Future: Redirect to payment page or add to cart functionality
-        });
-
-        container.appendChild(card);
+        artworkList.appendChild(card);
       });
     }
 
+    window.onBuy = (id) => {
+      alert('Buying flow placeholder. Implement checkout as needed. Artwork ID: ' + id);
+    };
+
+    searchInput.addEventListener('input', renderList);
+
     loadArtworks();
-  </script>
-</body>
+  </script></body>
 </html>
