@@ -79,18 +79,20 @@
       if(!artistName || !title || !price || !file){ alert('Please fill all fields and select an image'); return; }
 
       try{
-        const filePath = '${Date.now()}_${file.name}';
+        const filePath = ${Date.now()}_${file.name}; // ✅ Corrected backticks
         const { data: uploadData, error: uploadError } = await supabase.storage.from('uploads').upload(filePath, file);
         if(uploadError) throw uploadError;
+
         const { data: publicUrlData } = supabase.storage.from('uploads').getPublicUrl(uploadData.path);
         const imageUrl = publicUrlData.publicUrl;
+
         await supabase.from('artworks').insert([{artist_name:artistName, title, description, price, customization, image_url:imageUrl}]);
+
         alert('Artwork uploaded successfully!');
         loadArtworks();
       }catch(e){console.error(e); alert('Upload failed')}
     });
 
     artistNameInput.addEventListener('input', loadArtworks);
-  </script>
-</body>
+  </script></body>
 </html>
