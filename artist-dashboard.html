@@ -5,6 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Artist Dashboard</title>
   <link rel="stylesheet" href="style.css">
+
+  <style>
+    .artwork-card {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+    .artwork-card img {
+      width: 150px;
+      border-radius: 5px;
+    }
+    .deleteBtn {
+      background: red;
+      color: white;
+      padding: 8px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+  </style>
+
 </head>
 <body>
   <div class="container">
@@ -19,16 +43,65 @@
     <button id="uploadButton">Upload</button>
   </div>
 
+  <h2 style="text-align:center; margin-top:30px;">Your Uploaded Artworks</h2>
+  <div id="artworkList"></div>
+
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    // ✅ Your Supabase credentials
-    const supabaseUrl = "https://kbekzfrjtruiigbpojmi.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg";
-    // ✅ Initialize Supabase client
-    const supabase = createClient("https://kbekzfrjtruiigbpojmi.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg");
+    // Supabase credentials
+    const supabase = createClient(
+      "https://kbekzfrjtruiigbpojmi.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg"
+    );
 
-    // ✅ Upload button click handler
+    // ========== LOAD ARTWORKS ==========
+    async function loadArtworks() {
+      const artistName = document.getElementById("artistName").value.trim();
+      if (!artistName) return;
+
+      const { data, error } = await supabase
+        .from("artworks")
+        .select("*")
+        .eq("artist_name", artistName)
+        .order("id", { ascending: false });
+
+      const listDiv = document.getElementById("artworkList");
+      listDiv.innerHTML = "";
+
+      data?.forEach(art => {
+        const card = document.createElement("div");
+        card.className = "artwork-card";
+        card.innerHTML = `
+          <h3>${art.title}</h3>
+          <img src="${art.image_url}">
+          <p>${art.description}</p>
+          <p><b>Price:</b> ₹${art.price}</p>
+          <button class="deleteBtn" onclick="deleteArtwork(${art.id}, '${art.image_url}', this)">Delete</button>
+        `;
+        listDiv.appendChild(card);
+      });
+    }
+
+    window.deleteArtwork = async (id, imageUrl, btn) => {
+      const fileName = imageUrl.split("/").pop();
+
+      // 1. Delete from storage
+      await supabase.storage.from("uploads").remove([fileName]);
+
+      // 2. Delete from database
+      await supabase.from("artworks").delete().eq("id", id);
+
+      // 3. Remove card from screen
+      btn.parentElement.remove();
+
+      alert("Artwork deleted successfully!");
+    };
+
+    // When artist enters name, auto load artworks
+    document.getElementById("artistName").addEventListener("input", loadArtworks);
+
+    // ========== UPLOAD ARTWORK ==========
     document.getElementById("uploadButton").addEventListener("click", async () => {
       const artistName = document.getElementById("artistName").value.trim();
       const title = document.getElementById("artworkName").value.trim();
@@ -43,54 +116,39 @@
       }
 
       try {
-        // ✅ STEP 1: Upload to Supabase Storage
-        const filePath = `${Date.now()}_${file.name}`;
+        const filePath = ${Date.now()}_${file.name};
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from("uploads")
-          .upload(filePath, file, {
-            cacheControl: "3600",
-            upsert: false,
-          });
+          .upload(filePath, file);
 
         if (uploadError) throw uploadError;
-        console.log("✅ Uploaded to storage:", uploadData.path);
 
-        // ✅ STEP 2: Get Public URL
         const { data: publicUrlData } = supabase.storage
           .from("uploads")
           .getPublicUrl(uploadData.path);
-        const imageUrl = publicUrlData.publicUrl;
-        console.log("✅ Public URL:", imageUrl);
 
-        // ✅ STEP 3: Insert artwork info into database
-        const { error: dbError } = await supabase.from("artworks").insert([
+        const imageUrl = publicUrlData.publicUrl;
+
+        await supabase.from("artworks").insert([
           {
             artist_name: artistName,
-            title: title,
-            description: description,
-            price: price,
-            customization: customization,
+            title,
+            description,
+            price,
+            customization,
             image_url: imageUrl,
           },
         ]);
 
-        if (dbError) throw dbError;
-
-        alert("✅ Artwork uploaded and saved successfully!");
-
-        // ✅ STEP 4: Clear form
-        document.getElementById("artistName").value = "";
-        document.getElementById("artworkName").value = "";
-        document.getElementById("artworkDescription").value = "";
-        document.getElementById("artworkPrice").value = "";
-        document.getElementById("artworkCustomization").value = "";
-        document.getElementById("artworkImage").value = "";
+        alert("Artwork uploaded successfully!");
+        loadArtworks(); // refresh list
 
       } catch (error) {
-        console.error("❌ Error:", error);
-        alert("Something went wrong! Please check console for details.");
+        console.error(error);
+        alert("Upload failed.");
       }
     });
   </script>
+
 </body>
 </html>
