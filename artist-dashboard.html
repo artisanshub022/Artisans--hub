@@ -3,6 +3,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ARTSIANS HUB - Artist Dashboard</title>
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+    console.log("LOADED", createClient);
+</script>
   <style>
     body {font-family: Arial, sans-serif; background: linear-gradient(135deg,#f6d365,#fda085,#fbc2eb); margin: 0; padding: 20px;}
     .container {max-width: 900px; margin: auto; background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); border-radius: 20px; padding: 20px;}
