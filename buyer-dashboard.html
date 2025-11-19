@@ -1,8 +1,10 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ARTSIANS HUB - Buyer Dashboard</title>
+
   <style>
     body {font-family: Arial, sans-serif; background: linear-gradient(135deg,#f6d365,#fda085,#fbc2eb); margin: 0; padding: 20px;}
     .container {max-width: 1000px; margin: auto; background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); border-radius: 20px; padding: 20px;}
@@ -14,57 +16,89 @@
     .btn-primary {background: linear-gradient(90deg,#6a11cb,#2575fc); color: white; border: none; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: bold;}
   </style>
 </head>
-<body>  <div class="container">
+
+<body>
+
+  <div class="container">
     <h2>Buyer Dashboard</h2>
-    <input type="text" id="searchInput" placeholder="Search artworks..." style="width:100%; padding:10px; margin:8px 0; border-radius:8px; border:1px solid rgba(0,0,0,0.1)"><div id="artworkList"></div>
 
-  </div>  
+    <input type="text" id="searchInput" placeholder="Search artworks..."
+      style="width:100%; padding:10px; margin:8px 0; border-radius:8px; border:1px solid rgba(0,0,0,0.1)">
+
+    <div id="artworkList"></div>
+  </div>
+
+  <!-- CORRECT MODULE SCRIPT -->
   <script type="module">
- <script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
     const supabase = createClient(
       "https://kbekzfrjtruiigbpojmi.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg"
     );
 
-    const artworkList = document.getElementById('artworkList');
-    const searchInput = document.getElementById('searchInput');
+    const artworkList = document.getElementById("artworkList");
+    const searchInput = document.getElementById("searchInput");
+
     let artworksCache = [];
 
-    async function loadArtworks(){
-      const { data } = await supabase.from('artworks').select('*').order('id', {ascending:false});
+    async function loadArtworks() {
+      const { data } = await supabase
+        .from("artworks")
+        .select("*")
+        .order("id", { ascending: false });
+
       artworksCache = data || [];
       renderList();
     }
 
-    function renderList(){
+    function renderList() {
       const q = searchInput.value.trim().toLowerCase();
-      artworkList.innerHTML = '';
+      artworkList.innerHTML = "";
+
       let list = artworksCache.slice();
-      if(q){ list = list.filter(a => (a.title||'').toLowerCase().includes(q) || (a.description||'').toLowerCase().includes(q)); }
-      if(list.length === 0){ artworkList.innerHTML = '<div style="color:#333; text-align:center; margin-top:20px">No artworks found.</div>'; return; }
-      list.forEach(a => {
-        const card = document.createElement('div');
-        card.className = 'art-card';
+
+      if (q) {
+        list = list.filter(
+          (a) =>
+            (a.title || "").toLowerCase().includes(q) ||
+            (a.description || "").toLowerCase().includes(q)
+        );
+      }
+
+      if (list.length === 0) {
+        artworkList.innerHTML =
+          "<div style='color:#333; text-align:center; margin-top:20px'>No artworks found.</div>";
+        return;
+      }
+
+      list.forEach((a) => {
+        const card = document.createElement("div");
+        card.className = "art-card";
+
         card.innerHTML = `
-          <img src='${a.image_url}' />
+          <img src="${a.image_url}" />
           <h4>${a.title}</h4>
           <p>${a.description}</p>
-          <div class='art-meta'><span>₹${a.price}</span><span>${a.customization}</span></div>
-          <button class='btn-primary' onclick='onBuy(${a.id})'>Buy</button>
+          <div class="art-meta">
+            <span>₹${a.price}</span>
+            <span>${a.customization}</span>
+          </div>
+          <button class="btn-primary" onclick="onBuy(${a.id})">Buy</button>
         `;
+
         artworkList.appendChild(card);
       });
     }
 
     window.onBuy = (id) => {
-      alert('Buying flow placeholder. Implement checkout as needed. Artwork ID: ' + id);
+      alert("Buying flow placeholder. Artwork ID: " + id);
     };
 
-    searchInput.addEventListener('input', renderList);
+    searchInput.addEventListener("input", renderList);
 
     loadArtworks();
-  </script></body>
+  </script>
+
+</body>
 </html>
