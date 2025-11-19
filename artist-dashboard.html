@@ -28,9 +28,10 @@
 
 <div id="artworkList"></div>
 
-  </div>  <script type="module">
-    import Supabase from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.29.0/dist/module/supabase.js';
-
+  </div> 
+  <script type="module">
+  import supabaseJs from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+  const { createClient } = supabaseJs;
 
     const supabase = createClient(
       "https://kbekzfrjtruiigbpojmi.supabase.co",
