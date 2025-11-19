@@ -28,7 +28,9 @@
     <div id="artworkList"></div>
   </div>
 
-  <!-- CORRECT MODULE SCRIPT -->
+  <!-- Razorpay checkout script -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -91,8 +93,43 @@
       });
     }
 
-    window.onBuy = (id) => {
-      alert("Buying flow placeholder. Artwork ID: " + id);
+    // ✅ Payment flow using Razorpay
+    window.onBuy = async (artworkId) => {
+      const artwork = artworksCache.find(a => a.id === artworkId);
+      if(!artwork) return;
+
+      const options = {
+        key: "rzp_test_YourTestKeyHere", // Replace with your Razorpay test/live key
+        amount: artwork.price * 100, // Amount in paise
+        currency: "INR",
+        name: "ARTSIANS HUB",
+        description: artwork.title,
+        handler: async function (response){
+          // Payment success, save order to Supabase
+          try {
+            await supabase.from("orders").insert([{
+              artwork_id: artwork.id,
+              artwork_title: artwork.title,
+              artist_name: artwork.artist_name,
+              price: artwork.price,
+              payment_id: response.razorpay_payment_id,
+              status: "paid"
+            }]);
+            alert("Payment successful! Your order is confirmed.");
+          } catch (e) {
+            console.error(e);
+            alert("Payment successful but failed to save order. Contact support.");
+          }
+        },
+        prefill: {
+          name: "", // Optional buyer name
+          email: "" // Optional buyer email
+        },
+        theme: { color: "#6a11cb" }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
     };
 
     searchInput.addEventListener("input", renderList);
