@@ -1,103 +1,146 @@
-<!DOCTYPE html><html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ARTSIANS HUB - Artist Dashboard</title>
-  <script type="module">
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-    console.log("LOADED", createClient);
-</script>
-  <style>
-    body {font-family: Arial, sans-serif; background: linear-gradient(135deg,#f6d365,#fda085,#fbc2eb); margin: 0; padding: 20px;}
-    .container {max-width: 900px; margin: auto; background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); border-radius: 20px; padding: 20px;}
-    h2 {text-align: center;}
-    input, textarea {width: 100%; padding: 10px; margin: 8px 0; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1);}
-    button {padding: 10px 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold;}
-    .btn-primary {background: linear-gradient(90deg,#6a11cb,#2575fc); color: white;}
-    .btn-danger {background: linear-gradient(90deg,#ff416c,#ff4b2b); color: white;}
-    #artworkList {display: grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap: 12px; margin-top: 20px;}
-    .art-card {background: rgba(255,255,255,0.85); padding: 12px; border-radius: 12px; box-shadow: 0 6px 20px rgba(10,10,20,0.06);}
-    .art-card img {width: 100%; height: 140px; object-fit: cover; border-radius: 8px;}
-    .art-meta {display: flex; justify-content: space-between; margin-top: 6px; font-size: 14px;}
-  </style>
-</head>
-<body>  <div class="container">
-    <h2>Artist Dashboard</h2><input type="text" id="artistName" placeholder="Your Name (Artist)">
-<input type="text" id="artworkName" placeholder="Artwork Name">
-<textarea id="artworkDescription" placeholder="Description"></textarea>
-<input type="number" id="artworkPrice" placeholder="Price">
-<input type="text" id="artworkCustomization" placeholder="Customization (Yes/No)">
-<input type="file" id="artworkImage">
-<button id="uploadButton" class="btn-primary">Upload Artwork</button>
-
-<div id="artworkList"></div>
-
-  </div> 
-  <script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+<!DOCTYPE html>
+<html lang="en">  
+<head>  
+  <meta charset="UTF-8">  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  <title>ARTSIANS HUB - Artist Dashboard</title>  
+  <script type="module">  
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";  
+    console.log("LOADED", createClient);  
+  </script>  
+  <style>  
+    body {font-family: Arial, sans-serif; background: linear-gradient(135deg,#f6d365,#fda085,#fbc2eb); margin: 0; padding: 20px;}  
+    .container {max-width: 900px; margin: auto; background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); border-radius: 20px; padding: 20px;}  
+    h2 {text-align: center;}  
+    input, textarea {width: 100%; padding: 10px; margin: 8px 0; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1);}  
+    button {padding: 10px 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold;}  
+    .btn-primary {background: linear-gradient(90deg,#6a11cb,#2575fc); color: white;}  
+    .btn-danger {background: linear-gradient(90deg,#ff416c,#ff4b2b); color: white;}  
+    #artworkList {display: grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap: 12px; margin-top: 20px;}  
+    .art-card {background: rgba(255,255,255,0.85); padding: 12px; border-radius: 12px; box-shadow: 0 6px 20px rgba(10,10,20,0.06);}  
+    .art-card img {width: 100%; height: 140px; object-fit: cover; border-radius: 8px;}  
+    .art-meta {display: flex; justify-content: space-between; margin-top: 6px; font-size: 14px;}  
+    hr {margin: 30px 0; border: 1px solid rgba(0,0,0,0.1);}  
+  </style>  
+</head>  
+<body>  
+  <div class="container">  
+    <h2>Artist Dashboard</h2>
     
-    const supabase = createClient(
-      "https://kbekzfrjtruiigbpojmi.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg"
-    );
+    <!-- Artist Info & Artwork Upload -->
+    <input type="text" id="artistName" placeholder="Your Name (Artist)">  
+    <input type="text" id="artworkName" placeholder="Artwork Name">  
+    <textarea id="artworkDescription" placeholder="Description"></textarea>  
+    <input type="number" id="artworkPrice" placeholder="Price">  
+    <input type="text" id="artworkCustomization" placeholder="Customization (Yes/No)">  
+    <input type="file" id="artworkImage">  
+    <button id="uploadButton" class="btn-primary">Upload Artwork</button>  
+    <div id="artworkList"></div>  
 
-    const artistNameInput = document.getElementById('artistName');
-    const artworkList = document.getElementById('artworkList');
+    <hr />
 
-    async function loadArtworks(){
+    <!-- Payout / Payment Method Setup -->
+    <h3>Set Your Payout Method</h3>
+    <input type="text" id="upiId" placeholder="UPI ID (example@upi)">  
+    <input type="text" id="bankAccount" placeholder="Bank Account Number">  
+    <input type="text" id="ifsc" placeholder="IFSC Code">  
+    <button id="savePayout" class="btn-primary">Save Payout Details</button>
+  </div>   
+
+  <script type="module">  
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";  
+
+    const supabase = createClient(  
+      "https://kbekzfrjtruiigbpojmi.supabase.co",  
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg"  
+    );  
+
+    const artistNameInput = document.getElementById('artistName');  
+    const artworkList = document.getElementById('artworkList');  
+
+    async function loadArtworks(){  
+      const artistName = artistNameInput.value.trim();  
+      if(!artistName) return;  
+
+      const { data } = await supabase.from('artworks').select('*').eq('artist_name', artistName).order('id', {ascending:false});  
+      artworkList.innerHTML = '';  
+
+      data?.forEach(art => {  
+        const card = document.createElement('div');  
+        card.className='art-card';  
+        card.innerHTML = `  
+          <h4>${art.title}</h4>  
+          <img src='${art.image_url}' />  
+          <p>${art.description}</p>  
+          <div class='art-meta'><span>₹${art.price}</span><span>${art.customization}</span></div>  
+          <button class='btn-danger' onclick='deleteArtwork(${art.id}, "${art.image_url}", this)'>Delete</button>  
+        `;  
+        artworkList.appendChild(card);  
+      });  
+    }  
+
+    window.deleteArtwork = async (id, imageUrl, btn) => {  
+      const fileName = imageUrl.split('/').pop();  
+      await supabase.storage.from('uploads').remove([fileName]);  
+      await supabase.from('artworks').delete().eq('id', id);  
+      btn.parentElement.remove();  
+      alert('Artwork deleted successfully!');  
+    };  
+
+    document.getElementById('uploadButton').addEventListener('click', async () => {  
+      const artistName = artistNameInput.value.trim();  
+      const title = document.getElementById('artworkName').value.trim();  
+      const description = document.getElementById('artworkDescription').value.trim();  
+      const price = Number(document.getElementById('artworkPrice').value.trim());  
+      const customization = document.getElementById('artworkCustomization').value.trim();  
+      const file = document.getElementById('artworkImage').files[0];  
+
+      if(!artistName || !title || !price || !file){ alert('Please fill all fields and select an image'); return; }  
+
+      try{  
+        const filePath = ${Date.now()}_${file.name.replace(/\s/g,"_")}; 
+        const { data: uploadData, error: uploadError } = await supabase.storage.from('uploads').upload(filePath, file);  
+        if(uploadError) throw uploadError;  
+
+        const { data: publicUrlData } = supabase.storage.from('uploads').getPublicUrl(uploadData.path);  
+        const imageUrl = publicUrlData.publicUrl;  
+
+        await supabase.from('artworks').insert([{artist_name:artistName, title, description, price, customization, image_url:imageUrl}]);  
+
+        alert('Artwork uploaded successfully!');  
+        loadArtworks();  
+      }catch(e){console.error(e); alert('Upload failed: ' + e.message);}  
+    });  
+
+    // ✅ Payout method save
+    document.getElementById('savePayout').addEventListener('click', async () => {
       const artistName = artistNameInput.value.trim();
-      if(!artistName) return;
+      const upiId = document.getElementById('upiId').value.trim();
+      const bankAccount = document.getElementById('bankAccount').value.trim();
+      const ifsc = document.getElementById('ifsc').value.trim();
 
-      const { data } = await supabase.from('artworks').select('*').eq('artist_name', artistName).order('id', {ascending:false});
-      artworkList.innerHTML = '';
-
-      data?.forEach(art => {
-        const card = document.createElement('div');
-        card.className='art-card';
-        card.innerHTML = `
-          <h4>${art.title}</h4>
-          <img src='${art.image_url}' />
-          <p>${art.description}</p>
-          <div class='art-meta'><span>₹${art.price}</span><span>${art.customization}</span></div>
-          <button class='btn-danger' onclick='deleteArtwork(${art.id}, "${art.image_url}", this)'>Delete</button>
-        `;
-        artworkList.appendChild(card);
-      });
-    }
-
-    window.deleteArtwork = async (id, imageUrl, btn) => {
-      const fileName = imageUrl.split('/').pop();
-      await supabase.storage.from('uploads').remove([fileName]);
-      await supabase.from('artworks').delete().eq('id', id);
-      btn.parentElement.remove();
-      alert('Artwork deleted successfully!');
-    };
-
-    document.getElementById('uploadButton').addEventListener('click', async () => {
-      const artistName = artistNameInput.value.trim();
-      const title = document.getElementById('artworkName').value.trim();
-      const description = document.getElementById('artworkDescription').value.trim();
-      const price = Number(document.getElementById('artworkPrice').value.trim());
-      const customization = document.getElementById('artworkCustomization').value.trim();
-      const file = document.getElementById('artworkImage').files[0];
-
-      if(!artistName || !title || !price || !file){ alert('Please fill all fields and select an image'); return; }
+      if(!artistName || (!upiId && !bankAccount)){
+        alert('Enter artist name and at least one payout method');
+        return;
+      }
 
       try{
-        const filePath = '${Date.now()}_${file.name}'; // ✅ Corrected backticks
-        const { data: uploadData, error: uploadError } = await supabase.storage.from('uploads').upload(filePath, file);
-        if(uploadError) throw uploadError;
+        // Save or upsert payout details
+        await supabase.from('artist_payouts').upsert([{
+          artist_name: artistName,
+          upi_id: upiId || null,
+          bank_account: bankAccount || null,
+          ifsc: ifsc || null
+        }], { onConflict: ['artist_name'] });
 
-        const { data: publicUrlData } = supabase.storage.from('uploads').getPublicUrl(uploadData.path);
-        const imageUrl = publicUrlData.publicUrl;
-
-        await supabase.from('artworks').insert([{artist_name:artistName, title, description, price, customization, image_url:imageUrl}]);
-
-        alert('Artwork uploaded successfully!');
-        loadArtworks();
-      }catch(e){console.error(e); alert('Upload failed')}
+        alert('Payout details saved successfully!');
+      }catch(e){
+        console.error(e);
+        alert('Failed to save payout details: ' + e.message);
+      }
     });
 
-    artistNameInput.addEventListener('input', loadArtworks);
-  </script></body>
+    artistNameInput.addEventListener('input', loadArtworks);  
+  </script>
+</body>  
 </html>
