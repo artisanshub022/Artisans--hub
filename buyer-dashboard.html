@@ -18,13 +18,12 @@
     <h2>Buyer Dashboard</h2>
     <input type="text" id="searchInput" placeholder="Search artworks..." style="width:100%; padding:10px; margin:8px 0; border-radius:8px; border:1px solid rgba(0,0,0,0.1)"><div id="artworkList"></div>
 
-  </div>  <script type="module">
- import Supabase from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.29.0/dist/module/supabase.js';
+  </div>  
+  <script type="module">
+  import supabaseJs from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+  const { createClient } = supabaseJs;
 
-const supabase = Supabase.createClient(
-  'https://kbekzfrjtruiigbpojmi.supabase.co',
-  'YOUR_SUPABASE_KEY_HERE'
-);
+
     const supabase = createClient(
       "https://kbekzfrjtruiigbpojmi.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZWt6ZnJqdHJ1aWlnYnBvam1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDExMjksImV4cCI6MjA3NTE3NzEyOX0.P5ZszIMSxsZX80tsG_McKEuamj9aogexfGa9wjkVeGg"
